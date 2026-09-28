@@ -11,6 +11,9 @@ Ground rules, binding for the whole run:
 
 ## Phase 0: Find home, and find what already exists
 
+**Hard privacy boundary for this Windows machine.** The profile `C:/Users/vijay koripella` is permanently off-limits. Never read, list, search, index, summarize, copy, move, modify, delete, execute, or inspect anything inside that path or any descendant path. Never add it to `extra_dirs`, never use it as a vault, and never scan it during discovery. Do not request or attempt privilege elevation to bypass this boundary. If a requested action would touch that profile, refuse that action and say the path is blocked.
+
+
 **Local-Qwen prerequisite, before anything else.** This fork is meant to use Ollama instead of paid Anthropic model inference. Verify `ollama --version`. If Ollama is missing, explain that it is the local model runner and ask permission to install it. Verify the default model with `ollama list`; if `qwen3.5:4b` is missing, run `ollama pull qwen3.5:4b`. For this setup session and every Claude Code launcher you create, set `ANTHROPIC_AUTH_TOKEN=ollama`, `ANTHROPIC_BASE_URL=http://localhost:11434`, and launch Claude Code with `--model qwen3.5:4b`. Never silently fall back to an Anthropic-hosted model.
 
 

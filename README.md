@@ -27,6 +27,10 @@ Four pieces, each its own open repo, each excellent alone, assembled here into o
 
 Every piece is optional. The wizard asks which ones you want and explains each in plain English before you decide.
 
+## Privacy boundary
+
+On this machine, the agent is configured to treat `C:\\Users\\vijay koripella` as off-limits. Do not run the agent as Administrator or add that profile to any allowed directory list.
+
 ## Install — local Qwen edition
 
 Install **Ollama** and **Claude Code**, then pull the default local model:

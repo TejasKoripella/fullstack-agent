@@ -30,6 +30,26 @@
 HERE="$(cd "$(dirname "$0")" && pwd)"
 HOME_DIR="$(dirname "$HERE")"
 MODE="${1:-all}"
+
+# Local-Qwen edition: route Claude Code / Agent SDK traffic to Ollama.
+# Claude Code remains the agent shell; Qwen is the model doing the reasoning.
+export FULLSTACK_QWEN_MODEL="${FULLSTACK_QWEN_MODEL:-qwen3.5:4b}"
+export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-http://localhost:11434}"
+export ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-ollama}"
+
+if ! command -v ollama >/dev/null 2>&1; then
+  echo
+  echo "Ollama is required for the free local Qwen brain."
+  echo "Install Ollama, then run: ollama pull $FULLSTACK_QWEN_MODEL"
+  exit 1
+fi
+
+if ! ollama list 2>/dev/null | grep -Fq "$FULLSTACK_QWEN_MODEL"; then
+  echo
+  echo "Qwen model $FULLSTACK_QWEN_MODEL is not installed."
+  echo "Run: ollama pull $FULLSTACK_QWEN_MODEL"
+  exit 1
+fi
 PIDS=()
 
 cleanup() {

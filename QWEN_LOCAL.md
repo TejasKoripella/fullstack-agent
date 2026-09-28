@@ -73,3 +73,13 @@ The launchers also export the local Ollama endpoint and dummy auth token expecte
 ## Cost
 
 Local Ollama models do not have per-token API charges. Your computer supplies the compute. Optional third-party services such as ElevenLabs may still cost money if you choose to enable them.
+
+## Privacy boundary
+
+This fork is configured for this machine so the agent must never access the work profile:
+
+```text
+C:\\Users\\vijay koripella
+```
+
+Do not add that path to Backtalk `extra_dirs`, do not use it as a memory/vault location, and do not run the agent elevated as Administrator to bypass Windows permissions.

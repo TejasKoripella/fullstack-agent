@@ -11,6 +11,9 @@ Ground rules, binding for the whole run:
 
 ## Phase 0: Find home, and find what already exists
 
+**Local-Qwen prerequisite, before anything else.** This fork is meant to use Ollama instead of paid Anthropic model inference. Verify `ollama --version`. If Ollama is missing, explain that it is the local model runner and ask permission to install it. Verify the default model with `ollama list`; if `qwen3.5:4b` is missing, run `ollama pull qwen3.5:4b`. For this setup session and every Claude Code launcher you create, set `ANTHROPIC_AUTH_TOKEN=ollama`, `ANTHROPIC_BASE_URL=http://localhost:11434`, and launch Claude Code with `--model qwen3.5:4b`. Never silently fall back to an Anthropic-hosted model.
+
+
 **Prerequisite check, before anything else: git.** On Mac and Linux the install command arrives through git, so it exists. On Windows the install command downloads this repo as a ZIP on purpose, so it works on a machine with no git at all; that means git may be missing here, and the component installs below need it. Check with `git --version`. If it's missing, ask first, never silently: "One tool before we build: git, the free program that downloads and updates all the pieces. Want me to install it for you right now?" On a clear yes: `winget install --id Git.Git -e --source winget --silent --accept-package-agreements --accept-source-agreements`, then verify it landed. One gotcha you (the AI) must handle yourself, and it applies to EVERY tool you install today, not just this one: a terminal that was already open does not see freshly installed programs. For the rest of THIS setup call anything you just installed by its full path -- git at `C:/Program Files/Git/cmd/git.exe`, and the same goes for `uv` when a component installs it, which bites exactly the same way and has caught a real install. Every terminal opened after today finds them normally. **Write paths with forward slashes throughout**: they work everywhere in both Python and Node on Windows, and they survive the trip through bash and JSON that eats backslashes.
 
 **Then, if this repo has no `.git` folder inside it** (it arrived as a zip): convert it into a real clone in place, so the update script can reach it forever after. Inside this folder: `git init -b main`, `git remote add origin https://github.com/jaredrhod/fullstack-agent`, `git fetch origin`, `git reset --hard origin/main`, `git branch --set-upstream-to=origin/main main`. Nothing the person sees changes; the folder just gains its connection to updates. Do this quietly and move on.
@@ -85,6 +88,7 @@ This part belongs to this wizard alone. Write these config values, then read eac
 - `backtalk/backtalk.json`: `agent_dir` = the home folder. `name` = the agent's name. Add the vault's path to `extra_dirs`: a fresh vault lives at `~/<name>`, next to the agent's home folder and never inside it, and an adopted one lives wherever it always did. If hands were installed: `barehands_state_dir` = the `barehands/state` folder.
 - `backtalk/backtalk.json` greeting: set it to exactly `Hello <their name>, what are we working on today?` so every launch opens with the signature line.
 - `backtalk/backtalk.json`: `permission_mode` = their Phase 2 answer, `"ask"` or `"bypassPermissions"`; `mic_mode` = their Phase 2 answer, `"ptt"` or `"open"`.
+- `backtalk/backtalk.json`: set `model` = `"qwen3.5:4b"` and `deep_model` = `"qwen3.5:4b"`. Set `show_usage` = `false` because Claude-plan usage reporting does not apply to the local Ollama model.
 - `ai-visualizer/ai-visualizer.json`: `name` = the agent's name. `face` = their pick. `bus_dir` = the backtalk folder.
 - `barehands/barehands.json`: `name` = the agent's name.
 
@@ -125,7 +129,7 @@ Then, **before you build anything else, make one offer.** Ask it once, plainly, 
 
 Then **make the launchers**, so they never have to remember any of this. Shortcuts on their Desktop, named with THEIR agent's name (skip any mode whose pieces they did not install):
 
-1. **`Chat with <name>`** opens a typed Claude Code session in the home folder, terminal only. (macOS: a `.command` file containing `#!/bin/bash`, then the PATH export below, then `cd "<home folder>" && claude`. Windows: a `.bat` with `cd /d "<home folder>"` then `claude`.)
+1. **`Chat with <name>`** opens a typed Claude Code session in the home folder, terminal only, routed to local Ollama. macOS: after the PATH export below, export `ANTHROPIC_AUTH_TOKEN=ollama` and `ANTHROPIC_BASE_URL=http://localhost:11434`, then run `cd "<home folder>" && claude --model qwen3.5:4b`. Windows: set `ANTHROPIC_AUTH_TOKEN=ollama`, set `ANTHROPIC_BASE_URL=http://localhost:11434`, `cd /d "<home folder>"`, then run `claude --model qwen3.5:4b`.
 2. **`Talk to <name>`** starts the voice and the face. (Runs `fullstack-agent/start.sh voice`, or `start.bat voice` on Windows.)
 3. **`<name> barehands`** starts the voice and the hands board, no face; the board IS the screen in this mode. (Runs `fullstack-agent/start.sh hands`, or `start.bat hands`.)
 4. **`Update <name>`** (macOS only) pulls the newest version of every installed piece, showing what changed before applying it. (A `.command` with the PATH export, then `cd "<home folder>/fullstack-agent" && ./update.sh`.) On Windows, skip the Update shortcut; tell them to open a chat and say "update everything and tell me what changed" instead.

@@ -1,8 +1,10 @@
 # fullstack-agent
 
+> **Tejas local-Qwen fork:** this edition runs the agent brain locally with **Ollama + Qwen**, so the model itself has no per-token API charge. Claude Code remains the local agent shell used by Backtalk for tools and sessions. See [QWEN_LOCAL.md](QWEN_LOCAL.md) for setup.
+
 > **Never used Claude Code?** Start at [jaredrhod.com](https://jaredrhod.com): pick your situation and it routes you to the right path.
 
-**Runs on:** Claude Code only; the installer itself is a Claude Code wizard. The $20 Pro plan is enough.
+**Runs on:** Claude Code as the agent shell, with **Qwen through local Ollama** as the model. This fork is configured to avoid paid Anthropic model usage.
 
 Not an agent that writes full-stack code. **An agent that HAS a full stack: memory, voice, and face, plus an optional set of hands.** This repo assembles my whole setup on your machine in one guided conversation, and when it finishes, your screen is a living circuit board with your agent's name on the chip, and it speaks first:
 
@@ -25,25 +27,42 @@ Four pieces, each its own open repo, each excellent alone, assembled here into o
 
 Every piece is optional. The wizard asks which ones you want and explains each in plain English before you decide.
 
-## Install
+## Install — local Qwen edition
 
-You need [Claude Code](https://jaredrhod.com/start) with a Claude subscription. Mac and Linux also use git (macOS offers to install it the first time you use it). Windows needs nothing else: the installer sets up git for you during setup. Then one paste into your terminal.
+Install **Ollama** and **Claude Code**, then pull the default local model:
 
-Mac and Linux:
-
-```
-mkdir -p ~/my-agent && cd ~/my-agent && git clone https://github.com/jaredrhod/fullstack-agent && cd fullstack-agent && claude "set me up"
+```bash
+ollama pull qwen3.5:4b
 ```
 
-Windows (PowerShell):
+Clone **this fork**:
 
+Mac / Linux:
+
+```bash
+mkdir -p ~/my-agent && cd ~/my-agent
+git clone https://github.com/TejasKoripella/fullstack-agent
+cd fullstack-agent
+export ANTHROPIC_AUTH_TOKEN=ollama
+export ANTHROPIC_BASE_URL=http://localhost:11434
+claude --model qwen3.5:4b "set me up"
 ```
-$d="$env:USERPROFILE\.local\bin"; if (Test-Path "$d\claude.exe") { $env:Path="$d;$env:Path" }; New-Item -ItemType Directory -Force -Path $HOME\my-agent | Out-Null; cd $HOME\my-agent; if (-not (Test-Path fullstack-agent\fullstack-agent.md)) { Invoke-WebRequest https://github.com/jaredrhod/fullstack-agent/archive/refs/heads/main.zip -OutFile fsa.zip; Expand-Archive fsa.zip . -Force; New-Item -ItemType Directory -Force -Path fullstack-agent | Out-Null; Get-ChildItem fullstack-agent-main -Force | Copy-Item -Destination fullstack-agent -Recurse -Force; Remove-Item fullstack-agent-main -Recurse -Force; Remove-Item fsa.zip }; cd fullstack-agent; if (Get-Command claude -ErrorAction SilentlyContinue) { claude "set me up" } else { Write-Output "Claude Code is not installed yet. Install it first at https://jaredrhod.com/start then paste this again." }
+
+Windows PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force -Path "$HOME\my-agent" | Out-Null
+Set-Location "$HOME\my-agent"
+git clone https://github.com/TejasKoripella/fullstack-agent
+Set-Location fullstack-agent
+$env:ANTHROPIC_AUTH_TOKEN="ollama"
+$env:ANTHROPIC_BASE_URL="http://localhost:11434"
+claude --model qwen3.5:4b "set me up"
 ```
 
-(The Windows command downloads the toolbox as a zip on purpose, so it works on a machine with no git installed. The installer sets up git for you during setup. Safe to paste as many times as you like: it skips the download when the toolbox is already there, and if an earlier attempt died partway and left a half-finished folder, it downloads again and finishes the job rather than assuming it was already done. If it tells you Claude Code is not installed yet, do the [start page](https://jaredrhod.com/start) first. Heads up for that step on Windows: the Claude Code installer downloads about 330 MB and prints nothing at all while it does, so leave that window alone until it says Installation complete.)
+After setup, use the generated Desktop shortcuts or `fullstack-agent/start.bat` / `./fullstack-agent/start.sh`. The launchers automatically route Backtalk to the local Ollama endpoint.
 
-Claude Code opens with the installer already talking to you. (The agent lives in a folder right in your home directory on purpose: on Macs, things that run in the background out of Documents get silently blocked by the system.) Everything after that is a conversation: it asks for your agent's name and personality (or hands you mine, Jarvis, ready to use), which pieces you want, and where your notes live. It does the installing, the configuring, and the wiring itself.
+For model swapping, troubleshooting, and the exact architecture, read [QWEN_LOCAL.md](QWEN_LOCAL.md).
 
 ## Already built some of this?
 

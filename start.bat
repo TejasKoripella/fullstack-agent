@@ -25,6 +25,32 @@ rem   start.bat hands    the voice and the hands board (no face)
 
 cd /d "%~dp0.."
 
+rem Local-Qwen edition: route Claude Code / Agent SDK traffic to Ollama.
+rem Claude Code remains the agent shell; Qwen is the model doing the reasoning.
+if not defined FULLSTACK_QWEN_MODEL set "FULLSTACK_QWEN_MODEL=qwen3.5:4b"
+if not defined ANTHROPIC_BASE_URL set "ANTHROPIC_BASE_URL=http://localhost:11434"
+if not defined ANTHROPIC_AUTH_TOKEN set "ANTHROPIC_AUTH_TOKEN=ollama"
+
+where ollama >nul 2>nul
+if errorlevel 1 (
+  echo.
+  echo   Ollama is required for the free local Qwen brain.
+  echo   Install Ollama, then run: ollama pull %FULLSTACK_QWEN_MODEL%
+  echo.
+  pause
+  exit /b 1
+)
+
+ollama list | findstr /I /C:"%FULLSTACK_QWEN_MODEL%" >nul
+if errorlevel 1 (
+  echo.
+  echo   Qwen model %FULLSTACK_QWEN_MODEL% is not installed.
+  echo   Run: ollama pull %FULLSTACK_QWEN_MODEL%
+  echo.
+  pause
+  exit /b 1
+)
+
 if exist "ai-visualizer\" if not "%1"=="hands" (
   echo   face:  starting
   start "agent face" cmd /c "cd ai-visualizer && run.bat"

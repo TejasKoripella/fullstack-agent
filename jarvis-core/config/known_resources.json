@@ -1,0 +1,6 @@
+{
+  "Default playlist": {"kind": "playlist", "uri": "spotify:playlist:6chnzVM2lWXKhcvDSia4JW", "view_name": "Tejas' Playlist - playlist by Tejas Koripella | Spotify"},
+  "Python documentation": {"kind": "webpage", "url": "https://docs.python.org/3/"},
+  "Jarvis project": {"kind": "project", "path": "."},
+  "Jarvis verification": {"kind": "document", "path": "LOCAL_VERIFICATION.md"}
+}

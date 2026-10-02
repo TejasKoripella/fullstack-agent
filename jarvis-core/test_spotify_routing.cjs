@@ -1,0 +1,17 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const source = fs.readFileSync('ui/app.js', 'utf8');
+const handler = source.slice(source.indexOf('    function workflowActions('), source.indexOf('    async function showWorkflow('));
+const calls = [];
+const context = {conversation:{}, openAppByName:name=>calls.push(['app',name]), openSite:name=>calls.push(['web',name])};
+vm.createContext(context);
+vm.runInContext(handler + ';this.actions=workflowActions;', context);
+context.actions('Open Spotify')[0][1]();
+context.actions('Open Spotify Web')[0][1]();
+assert.deepEqual(calls, [['app','Spotify'],['web','Spotify Web']]);
+assert.equal(context.actions('What is Spotify?').length,0);
+assert.equal(context.actions('Open Spotify and find robotics filenames in Documents').length,0,'Mixed filename search must reach Qwen, not open/list Documents');
+assert.equal(context.actions('Find robotics filenames in Documents and open Spotify').length,0);
+assert.match(source, /getElementById\("open-spotify-app"\).*openAppByName\("Spotify"\)/);
+console.log('PASS: Spotify defaults to Windows app; web requires explicit request; questions do not launch');

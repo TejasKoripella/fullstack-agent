@@ -1,0 +1,44 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const source = fs.readFileSync('ui/app.js', 'utf8');
+const elements = new Map();
+const get = id => {
+  if (!elements.has(id)) elements.set(id, { hidden:true, textContent:'', addEventListener(name, fn) { this[name] = fn; } });
+  return elements.get(id);
+};
+let focused = 0, view = null;
+const context = {document:{getElementById:get}, showView:name=>view=name, messageInput:{focus:()=>focused++}};
+vm.createContext(context);
+vm.runInContext('let pendingWindowReference=null,pendingDocumentPath=null,pendingDocumentScope="documents",lastReadDocumentPath=null,lastReadProjectPath=null,safetyStopped=false;' +
+  source.slice(source.indexOf('    function clearDocument('), source.indexOf('    async function loadResources(')) +
+  ';this.snapshot=()=>pendingDocumentPath;this.windowRef=()=>pendingWindowReference;this.attachWindow=()=>pendingWindowReference={reference:"ticket"};this.scope=()=>pendingDocumentScope;this.select=path=>lastReadDocumentPath=path;this.project=path=>lastReadProjectPath=path;this.stop=()=>safetyStopped=true;', context);
+get('use-document').click();
+assert.equal(context.snapshot(), null);
+context.select('reference.txt');
+context.attachWindow();
+get('use-document').click();
+assert.equal(context.windowRef(),null,'Choosing a document replaces window context');
+assert.equal(context.snapshot(), 'reference.txt');
+assert.equal(view, 'home');
+assert.equal(focused, 1);
+assert.equal(get('document-attachment').hidden, false);
+get('clear-document').click();
+context.attachWindow();
+get('clear-document').click();
+assert.equal(context.windowRef(),null,'Removing a reference clears window context');
+assert.equal(context.snapshot(), null);
+assert.equal(get('document-attachment').hidden, true);
+context.project('README.md');
+get('use-project-file').click();
+assert.equal(context.snapshot(),'README.md');
+assert.equal(context.scope(),'project');
+get('use-document').click();
+assert.equal(context.snapshot(),'reference.txt');
+assert.equal(context.scope(),'documents');
+get('clear-document').click();
+context.stop();
+get('use-document').click();
+get('use-project-file').click();
+assert.equal(context.snapshot(), null);
+console.log('PASS: document attachment requires explicit selection, removes cleanly and respects Stop');

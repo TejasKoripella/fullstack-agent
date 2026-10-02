@@ -1,0 +1,2 @@
+# Read-only Windows UI Automation foundation; installed in Jarvis's local venv.
+comtypes==1.4.17

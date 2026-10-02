@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#141619">
+  <meta name="description" content="Private local Jarvis assistant">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="stylesheet" href="/style.css">
+  <title>JARVIS · Local assistant</title>
+</head>
+<body data-view="home" data-assistant-state="idle" data-has-messages="false" data-conversation-type="master">
+  <canvas id="starfield" class="starfield" aria-hidden="true"></canvas>
+  <div class="shell">
+    <aside id="app-sidebar" class="app-sidebar" aria-label="Main navigation">
+      <div class="sidebar-top">
+        <div class="sidebar-brand"><span class="sidebar-mark" aria-hidden="true">✦</span><div><strong>JARVIS</strong><small>LOCAL ASSISTANT</small></div></div>
+        <button id="sidebar-close" class="sidebar-icon" type="button" aria-label="Close sidebar">×</button>
+      </div>
+      <button id="new-chat" class="new-chat" type="button"><span aria-hidden="true">✎</span> New Side Chat</button>
+      <nav class="sidebar-nav" aria-label="Jarvis views">
+        <button id="home-tab" class="active" type="button" aria-current="page"><span aria-hidden="true">◇</span> Master Chat</button>
+        <button id="control-tab" type="button"><span aria-hidden="true">▦</span> Tools &amp; settings</button>
+      </nav>
+      <div id="side-chat-list-section" class="sidebar-section" hidden><span class="sidebar-label">SIDE CHATS</span><div id="chat-list" class="chat-list"></div></div>
+      <div class="sidebar-bottom"><span class="status-dot-mini" aria-hidden="true"></span> Local and private</div>
+    </aside>
+    <div id="sidebar-scrim" class="sidebar-scrim" hidden></div>
+    <div class="app-main">
+    <header class="masthead">
+      <div class="header-left"><button id="sidebar-toggle" class="sidebar-icon" type="button" aria-label="Open sidebar">☰</button><div class="header-identity"><h1>Jarvis</h1><span id="header-chat-title">Master Chat</span></div></div>
+      <div class="masthead-right">
+        <button id="side-actions-trigger" class="header-action" type="button" aria-label="Side Chat actions" aria-haspopup="menu" aria-expanded="false" hidden>⋯</button>
+        <div class="status" role="status" aria-live="polite"><span id="status-dot" class="dot"></span><span class="status-mode">LOCAL</span><span id="status-text">Checking local service…</span></div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="system-panel" aria-label="System status">
+        <section class="panel-block core-block">
+          <div class="eyebrow">Status</div>
+          <div class="reactor" aria-hidden="true">
+            <div class="reactor-ring outer"></div>
+            <div class="reactor-ring middle"></div>
+            <div class="reactor-ring inner"></div>
+            <div class="reactor-core"></div>
+          </div>
+          <div class="core-caption"><strong>Jarvis is online</strong><span>Qwen runs on this computer</span></div>
+        </section>
+        <section class="panel-block telemetry">
+          <div class="eyebrow">Activity</div>
+          <div class="telemetry-row"><span>Microphone</span><strong id="mic-status" aria-live="polite">OFF</strong></div>
+          <div class="telemetry-row"><span>Image</span><strong id="capture-status" aria-live="polite">OFF</strong></div>
+          <div class="telemetry-row"><span>Memories used</span><strong id="recalled" aria-live="polite">0</strong></div>
+          <div class="telemetry-row"><span>PC actions</span><strong>Named tools only</strong></div>
+        </section>
+        <section class="panel-block brief">
+          <div class="eyebrow">Privacy</div>
+          <p>Master Chat keeps your history and remembers stable facts. Side Chats can read that context but save no long-term memories unless you move them to Master. Mic and vision run only when you activate them.</p>
+        </section>
+        <section class="panel-block">
+          <div class="eyebrow">Voice</div>
+          <h2>Wake listening</h2>
+          <label class="toggle-row"><input id="wake-enabled" type="checkbox"> Listen for “Hey Jarvis”</label>
+          <label for="microphone-select" class="small-status">Microphone</label>
+          <select id="microphone-select" aria-label="Wake microphone"><option value="">Default microphone</option></select>
+          <p id="wake-status" class="small-status" aria-live="polite">OFF · microphone released</p>
+          <p class="small-status">Wake mode runs only while this page is open. It checks short audio segments with local Whisper and turns off when you switch it off or close the page.</p>
+        </section>
+        <section class="panel-block">
+          <div class="eyebrow">Camera and screen</div>
+          <div class="capture-tools">
+            <button id="camera" type="button">◉ Camera frame</button>
+            <button id="screen" type="button">▣ Screen frame</button>
+            <button id="clear-image" type="button">Clear frame</button>
+            <img id="image-preview" alt="Image attached for the next message">
+          </div>
+          <p class="small-status">Capture one frame, then return Home and send a message.</p>
+        </section>
+      </aside>
+
+      <main class="chat-panel">
+        <div class="home-hero">
+          <div class="core-stage"><span class="core-reticle" aria-hidden="true"></span><canvas id="neural-core" width="340" height="340" tabindex="0" role="button" aria-label="Interactive Jarvis sphere"></canvas></div>
+          <div id="assistant-state" class="assistant-state" role="status" aria-live="polite">READY</div>
+          <div class="hero-copy"><h2>What can I help with?</h2><p>Ask, type, or speak.</p></div>
+          <span class="active-core-label">JARVIS CORE</span>
+        </div>
+        <div id="conversation" class="conversation" role="log" aria-label="Chat history" aria-live="polite">
+          <div id="intro" class="intro"></div>
+        </div>
+        <form id="chat-form" class="chat-form">
+          <div class="composer-shell">
+            <textarea id="message" aria-label="Message" placeholder="Message Jarvis" rows="2" required></textarea>
+            <div class="composer-actions">
+              <button id="tools-shortcut" class="composer-icon" type="button" aria-label="Open tools" title="Open tools">＋</button>
+              <label class="speak-chip"><input id="speak" type="checkbox"> Speak replies</label>
+              <div class="composer-right">
+                <button id="mic" class="mic" type="button" aria-label="Hold to talk" aria-pressed="false" title="Hold to talk"><span aria-hidden="true">◉</span><small>VOICE</small></button>
+                <button id="send" class="send" type="submit" aria-label="Send message"><span aria-hidden="true">↑</span></button>
+              </div>
+            </div>
+          </div>
+          <div class="composer-note"><span>Jarvis runs locally. Enter to send, Shift+Enter for a new line.</span></div>
+          <div id="document-attachment" class="small-status" hidden><span id="document-attachment-name"></span> <button id="clear-document" type="button">Remove reference</button></div>
+        </form>
+      </main>
+
+      <div id="side-actions-menu" class="chat-row-menu side-actions-menu" role="menu" aria-label="Side Chat actions" hidden>
+        <button id="promote-side-chat" type="button" role="menuitem">Move to Master</button>
+        <button id="commit-side-chat" type="button" role="menuitem">Commit to Memory</button>
+        <button id="discard-side-chat" class="chat-row-menu-delete" type="button" role="menuitem">Discard</button>
+      </div>
+
+      <aside class="memory-panel" aria-label="Memory and tools">
+        <section class="panel-block">
+          <div class="eyebrow">Approvals</div>
+          <h2>Action permissions</h2>
+          <p class="small-status">The first request to open a named app, site, or settings page offers Allow Once or Always Allow. Saved permissions apply only to that exact action and can be revoked here. Closing apps still asks. File deletion is unavailable.</p>
+          <div id="permissions-list" class="permissions-list">Loading permissions…</div>
+          <label class="toggle-row"><input id="save" type="checkbox"> Save the next full chat exchange</label>
+          <p class="small-status">New stable facts are saved automatically. Chats stay in local history; this option also saves an exchange for long-term recall.</p>
+        </section>
+        <section class="panel-block">
+          <div class="eyebrow">Memory</div>
+          <h2>Known facts</h2>
+          <div id="facts-list" class="facts-list">Loading…</div>
+          <form id="fact-form" class="side-form">
+            <label for="fact-key">Fact name</label>
+            <input id="fact-key" maxlength="100" placeholder="e.g. robotics language" required>
+            <label for="fact-value">Value</label>
+            <input id="fact-value" maxlength="1000" placeholder="e.g. Java" required>
+            <button type="submit">Save fact</button>
+            <p id="facts-status" class="small-status" aria-live="polite">Select Save fact to store this information.</p>
+          </form>
+        </section>
+        <section class="panel-block">
+          <div class="eyebrow">Safety</div>
+          <button id="emergency-stop" class="side-button emergency-stop" type="button">Emergency Stop</button>
+          <button id="resume-jarvis" class="side-button" type="button" disabled>Resume Jarvis</button>
+          <p id="safety-status" class="small-status" role="status">Checking safety state…</p>
+          <p class="small-status">Ctrl + Alt + J stops Jarvis while this window is focused. Resume does not restart listening or cancelled actions.</p>
+          <div class="eyebrow">Diagnostics</div>
+          <label class="toggle-row"><input id="dev-mode" type="checkbox"> Developer mode</label>
+          <div id="dev-diagnostics" class="dev-diagnostics" hidden>
+            <label class="toggle-row" for="dev-state-preview">Animation preview</label>
+            <select id="dev-state-preview" aria-label="Animation preview">
+              <option value="idle">Ready</option><option value="listening">Listening</option>
+              <option value="thinking">Thinking</option><option value="tool">Using tool</option>
+              <option value="approval">Awaiting approval</option>
+              <option value="speaking">Speaking</option><option value="muted">Muted</option><option value="error">Error</option>
+            </select>
+            <p class="small-status">Visual preview only. No microphone, speech, or tools are started.</p>
+            <div class="telemetry-row"><span>State</span><strong id="dev-state">IDLE</strong></div>
+            <div class="telemetry-row"><span>First token</span><strong id="dev-first-token">—</strong></div>
+            <div class="telemetry-row"><span>Response</span><strong id="dev-total">—</strong></div>
+            <div class="telemetry-row"><span>Speech</span><strong id="dev-tts">OFF</strong></div>
+            <div class="telemetry-row"><span>Memory matches</span><strong id="dev-memory">0</strong></div>
+            <div class="telemetry-row"><span>Tool</span><strong id="dev-tool">NONE</strong></div>
+            <div class="telemetry-row"><span>Authorization</span><strong id="dev-authorization">—</strong></div>
+            <div class="telemetry-row"><span>Security</span><strong id="dev-security">—</strong></div>
+            <div class="telemetry-row"><span>Execution</span><strong id="dev-execution">—</strong></div>
+            <div class="telemetry-row"><span>Tool latency</span><strong id="dev-tool-latency">—</strong></div>
+          </div>
+        </section>
+        <section class="panel-block">
+          <div class="eyebrow">Project files</div>
+          <h2>Inspect project file</h2>
+          <form id="read-form" class="side-form">
+            <label for="file-path">Relative path inside Jarvis</label>
+            <input id="file-path" placeholder="e.g. api.py" required>
+            <button type="submit">Read project file</button>
+          </form>
+          <p id="read-status" class="small-status" aria-live="polite">Project text files only. No file changes.</p>
+          <pre id="read-output" class="read-output" hidden></pre>
+          <button id="use-project-file" class="side-button" type="button" hidden>Use project file in next message</button>
+          <h2>Saved resources</h2>
+          <select id="resource-select" aria-label="Saved resource" disabled></select>
+          <button id="open-resource" class="side-button" type="button" disabled>Open selected item</button>
+          <p id="resource-status" class="small-status" aria-live="polite">Saved permissions apply only to that item.</p>
+        </section>
+        <section class="panel-block">
+          <div class="eyebrow">Apps</div>
+          <h2>Approved apps</h2>
+          <select id="app-select" aria-label="Approved app"></select>
+          <button id="open-app" class="side-button" type="button">Open selected app</button>
+          <button id="inspect-app" class="side-button" type="button">Inspect selected window</button>
+          <p class="small-status">Window inspection supports Spotify and Chrome. Each snapshot asks permission and reads control labels only; no clicks or typing.</p>
+          <button id="close-app" class="side-button" type="button">Close Jarvis-launched app</button>
+          <p id="app-status" class="small-status" aria-live="polite">No apps configured yet.</p>
+        </section>
+        <section class="panel-block">
+          <div class="eyebrow">Documents and sites</div>
+          <h2>Your documents and services</h2>
+          <button id="open-windows-documents" class="side-button" type="button">Open Windows Documents</button>
+          <button id="list-documents" class="side-button" type="button">List Windows Documents</button>
+          <form id="find-documents-form">
+            <label for="document-query">Find a filename in Documents</label>
+            <input id="document-query" type="search" maxlength="80" required placeholder="Filename contains…">
+            <button class="side-button" type="submit">Find documents</button>
+          </form>
+          <button id="open-spotify-app" class="side-button" type="button">Open Spotify</button>
+          <button id="spotify-play" class="side-button" type="button">Play Spotify</button>
+          <button id="spotify-pause" class="side-button" type="button">Pause Spotify</button>
+          <button id="spotify-check" class="side-button" type="button">Check Spotify playback</button>
+          <p id="spotify-status" class="small-status" aria-live="polite">Checking Spotify media session…</p>
+          <button id="open-bluetooth-settings" class="side-button" type="button">Bluetooth settings</button>
+          <button id="open-sound-settings" class="side-button" type="button">Sound output settings</button>
+          <button id="check-bluetooth" class="side-button" type="button">Check Bluetooth adapter</button>
+          <p id="bluetooth-status" class="small-status" aria-live="polite">Checking adapter…</p>
+          <p id="workflow-status" class="small-status" aria-live="polite">Ask in chat or use these controls. Pair your Bluetooth speaker in Windows, then choose it as the sound output.</p>
+          <div id="documents-list" class="documents-list" aria-live="polite"></div>
+          <pre id="document-output" class="read-output" hidden></pre>
+          <button id="use-document" class="side-button" type="button" hidden>Use document in next message</button>
+        </section>
+      </aside>
+    </div>
+    <footer class="app-footer"><span>Jarvis can make mistakes. Check important information.</span></footer>
+    </div>
+  </div>
+  <div id="delete-chat-dialog" class="chat-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-chat-title" hidden><div class="chat-dialog-card"><h2 id="delete-chat-title">Delete this chat?</h2><p><strong id="delete-chat-name"></strong> and its messages will be removed from local chat history.</p><p id="delete-chat-error" role="alert"></p><div><button id="cancel-delete-chat" type="button">Cancel</button><button id="confirm-delete-chat" class="destructive" type="button">Delete chat</button></div></div></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
